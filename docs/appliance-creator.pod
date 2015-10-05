@@ -38,7 +38,7 @@ Name of appliance image to be created (default based on config name)
 
 =item -f FORMAT, --format=FORMAT
 
-Disk format, this will take any input that qemu-img convert will take (raw, qcow2, vmdk, ...) Note: not all disk formats with work with all virt technologies. raw images are xz compressed, qcow2 images use compression.
+Disk format, this will take any input that qemu-img convert will take (raw, qcow2, vmdk, ...) Note: not all disk formats with work with all virt technologies. raw images are xz compressed, qcow2 images use compression (unless disabled with --no-compress option.
 
 =item --vmem=VMEM
 
@@ -51,6 +51,10 @@ Number of virtual cpus for appliance (default: 1)
 =item --checksum 
 
 Generate a checksum for the created appliance
+
+=item --no-compress
+
+Disable image compression.
 
 =back
 
