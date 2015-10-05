@@ -43,13 +43,13 @@ class ApplianceImageCreator(ImageCreator):
 
     """
 
-    def __init__(self, ks, name, disk_format, vmem, vcpu):
+    def __init__(self, ks, name, disk_format, vmem, vcpu, releasever=None):
         """Initialize a ApplianceImageCreator instance.
 
         This method takes the same arguments as ImageCreator.__init__()
 
         """
-        ImageCreator.__init__(self, ks, name)
+        ImageCreator.__init__(self, ks, name, releasever=releasever)
 
         self.__instloop = None
         self.__imgdir = None

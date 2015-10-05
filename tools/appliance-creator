@@ -129,7 +129,7 @@ def main():
     if options.name:
         name = options.name
             
-    creator = appcreate.ApplianceImageCreator(ks, name, options.disk_format, options.vmem, options.vcpu)
+    creator = appcreate.ApplianceImageCreator(ks, name, options.disk_format, options.vmem, options.vcpu, releasever=options.version)
     creator.tmpdir = options.tmpdir
     creator.checksum = options.checksum
 
