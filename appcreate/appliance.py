@@ -200,6 +200,15 @@ class ApplianceImageCreator(ImageCreator):
 
         self._create_mkinitrd_config()
 
+    def _kernel_cmdline_append(self):
+        options = self.ks.handler.bootloader.appendLine
+        if options == '':
+            options = 'rhgb quiet'
+        lang = self.ks.handler.lang.lang
+        if lang != '':
+            options = 'LANG=%s %s' % (lang, options)
+        return options
+
     def _create_grub_devices(self, grubversion = 1):
         devs = []
         parts = kickstart.get_partitions(self.ks)
@@ -254,7 +263,7 @@ class ApplianceImageCreator(ImageCreator):
 
     def _create_grub_config(self):
         (bootdevnum, rootdevnum, rootdev, prefix) = self._get_grub_boot_config()
-        options = self.ks.handler.bootloader.appendLine
+        options = self._kernel_cmdline_append()
 
         # NB we're assuming that grub config is on the first physical disk
         # ie /boot must be on sda, or if there's no /boot, then / must be sda
@@ -314,7 +323,7 @@ class ApplianceImageCreator(ImageCreator):
 
     def _create_extlinux_config(self):
         (bootdevnum, rootdevnum, rootdev, prefix) = self._get_grub_boot_config()
-        options = self.ks.handler.bootloader.appendLine
+        options = self._kernel_cmdline_append()
         # Search for bootloader package in package list
         packages = kickstart.get_packages(self.ks)
 
