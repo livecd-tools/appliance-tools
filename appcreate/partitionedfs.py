@@ -77,7 +77,7 @@ class PartitionedMount(Mount):
 
             d = self.disks[p['disk']]
             d['numpart'] += 1
-            if d['numpart'] > 3 and self.partition_layout == 'msdos':
+            if d['numpart'] > 4 and self.partition_layout == 'msdos':
                 # Increase allocation of extended partition to hold this partition
                 d['extended'] += p['size']
                 p['type'] = 'logical'
@@ -106,6 +106,8 @@ class PartitionedMount(Mount):
             logging.debug("Add %s part at %d of size %d" % (p['type'], p['start'], p['size']))
             if p['fstype'].startswith('ext'):
                 fstype = 'ext2'
+            if p['fstype'].startswith('swap'):
+                fstype = 'linux-swap'
             if p['fstype'] == 'vfat':
                 fstype = 'fat32'
             rc = subprocess.call(["/sbin/parted", "-a", "opt", "-s", d['disk'].device, "mkpart",
@@ -263,6 +265,10 @@ class PartitionedMount(Mount):
                 subprocess.call(["/sbin/mkfs.vfat", "-n", "uboot", p['device']])
                 p['UUID'] = self.__getuuid(p['device'])
                 continue
+
+            if mp == '/boot':
+                # mark the partition bootable
+                subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", str(p['num']), "boot", "on"])
 
             if mp == 'biosboot':
                 subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", "1", "bios_grub", "on"])
