@@ -206,7 +206,7 @@ class ApplianceImageCreator(ImageCreator):
             options = 'rhgb quiet'
         lang = self.ks.handler.lang.lang
         if lang != '':
-            options = 'LANG=%s %s' % (lang, options)
+            options = '%s LANG=%s' % (options, lang)
         return options
 
     def _create_grub_devices(self, grubversion = 1):
