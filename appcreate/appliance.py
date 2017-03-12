@@ -643,7 +643,8 @@ class ApplianceImageCreator(ImageCreator):
                 dst = "%s/%s-%s.%s" % (self._outdir, self.name, name, self.__disk_format)
 
                 if self.__compress:
-                    rc = subprocess.call(["xz", "-z", src])
+                    # Compress with xz using 16 MiB block size for seekability
+                    rc = subprocess.call(["xz", "-z", "--block-size=16777216", src])
                     if rc == 0:
                         logging.debug("compression successful")
                     if rc != 0:
