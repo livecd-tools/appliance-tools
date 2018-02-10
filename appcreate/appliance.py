@@ -66,7 +66,6 @@ class ApplianceImageCreator(ImageCreator):
 
         #additional modules to include
         self.modules = ["sym53c8xx", "aic7xxx", "mptspi"]
-        self.modules.extend(kickstart.get_modules(self.ks))
 
         # This determines which partition layout we'll be using
         self.bootloader = None
