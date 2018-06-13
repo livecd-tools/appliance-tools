@@ -643,7 +643,7 @@ class ApplianceImageCreator(ImageCreator):
 
                 if self.__compress:
                     # Compress with xz using 16 MiB block size for seekability
-                    rc = subprocess.call(["xz", "-z", "--block-size=16777216", src])
+                    rc = subprocess.call(["xz", "-z", "--block-size=16777216", "-T 0", src])
                     if rc == 0:
                         logging.debug("compression successful")
                     if rc != 0:
