@@ -171,8 +171,25 @@ def do_nss_sss_hack():
     del forgettable
     return hack
 
+#
+# https://bugzilla.redhat.com/show_bug.cgi?id=1591804
+# Try and look up a unknown user in the chroot so it
+# Opens and uses all the nss libraries in the chroot
+# Instead of doing so in the install root which might
+# Keep the libraries open and fail the build.
+#
+def do_unknown_user_hack():
+    import pwd as forgettable
+    try:
+        forgettable.getpwnam('fwefwkejkgre')
+    except:
+        pass
+    del forgettable
+    return
+
 if __name__ == "__main__":
     hack = do_nss_sss_hack()
+    do_unknown_user_hack()
     sys.exit(main())
 
 
