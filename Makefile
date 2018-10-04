@@ -7,10 +7,10 @@ INSTALL_SCRIPT = ${INSTALL_PROGRAM}
 
 INSTALL_PYTHON = ${INSTALL} -m 644
 define COMPILE_PYTHON
-	python -c "import compileall as c; c.compile_dir('$(1)', force=1)"
-	python -O -c "import compileall as c; c.compile_dir('$(1)', force=1)"
+	python3 -c "import compileall as c; c.compile_dir('$(1)', force=1)"
+	python3 -O -c "import compileall as c; c.compile_dir('$(1)', force=1)"
 endef
-PYTHONDIR := $(shell python -c "import distutils.sysconfig as d; print d.get_python_lib()")
+PYTHONDIR := $(shell python3 -c "import distutils.sysconfig as d; print d.get_python_lib()")
 
 all:
 

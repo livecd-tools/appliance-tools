@@ -17,6 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from __future__ import print_function
+from builtins import chr
+from builtins import range
 import os
 import os.path
 import glob
@@ -139,7 +142,7 @@ class ApplianceImageCreator(ImageCreator):
                 logging.debug("No --ondisk specified in partition line of ks file; assuming 'sda'")
                 disk = "sda"
 
-            size = parts[i].size * 1024L * 1024L
+            size = parts[i].size * 1024 * 1024
 
             if len(disks) == 0:
                 disks.append({ 'name': disk, 'size': size })
@@ -194,7 +197,7 @@ class ApplianceImageCreator(ImageCreator):
 
         try:
             self.__instloop.mount()
-        except MountError, e:
+        except MountError as e:
             raise CreatorError("Failed mount disks : %s" % e)
 
         self._create_mkinitrd_config()
@@ -388,7 +391,7 @@ class ApplianceImageCreator(ImageCreator):
         setup = ""
 
         i = 0
-        for name in self.__disks.keys():
+        for name in list(self.__disks.keys()):
             loopdev = self.__disks[name].device
             setup += "device (hd%s) %s\n" % (i, loopdev)
             i = i + 1
@@ -417,7 +420,7 @@ class ApplianceImageCreator(ImageCreator):
         (bootdevnum, rootdevnum, rootdev, prefix) = self._get_grub_boot_config()
 
         i = 0
-        for name in self.__disks.keys():
+        for name in list(self.__disks.keys()):
             loopdev = self.__disks[name].device
             i = i + 1
 
@@ -468,7 +471,7 @@ class ApplianceImageCreator(ImageCreator):
 
     def _install_extlinux(self):
         i = 0
-        for name in self.__disks.keys():
+        for name in list(self.__disks.keys()):
             loopdev = self.__disks[name].device
             i = i + 1
 
@@ -622,7 +625,7 @@ class ApplianceImageCreator(ImageCreator):
             for f in os.listdir(self._outdir):
                 logging.debug("moving %s to %s" % (os.path.join(self._outdir, f), os.path.join(dst, f)))
                 shutil.move(os.path.join(self._outdir, f), os.path.join(dst, f))
-        print "Finished"
+        print("Finished")
 
     def _stage_final_image(self):
         """Stage the final system image in _outdir.
@@ -637,7 +640,7 @@ class ApplianceImageCreator(ImageCreator):
         #else move to _outdir
         else:
             logging.debug("moving disks to stage location")
-            for name in self.__disks.keys():
+            for name in list(self.__disks.keys()):
                 src = "%s/%s-%s.%s" % (self.__imgdir, self.name, name, self.__disk_format)
                 dst = "%s/%s-%s.%s" % (self._outdir, self.name, name, self.__disk_format)
 
@@ -658,7 +661,7 @@ class ApplianceImageCreator(ImageCreator):
 
     def _convert_image(self):
         #convert disk format
-        for name in self.__disks.keys():
+        for name in list(self.__disks.keys()):
             dst = "%s/%s-%s.%s" % (self._outdir, self.name, name, self.__disk_format)
             logging.debug("converting %s image to %s" % (self.__disks[name].lofile, dst))
             if self.__compress and self.__disk_format == "qcow2":
@@ -703,7 +706,7 @@ class ApplianceImageCreator(ImageCreator):
         xml += "      </os>\n"
 
         i = 0
-        for name in self.__disks.keys():
+        for name in list(self.__disks.keys()):
             xml += "      <drive disk='%s-%s.%s' target='hd%s'/>\n" % (self.name, name, self.__disk_format, chr(ord('a')+i))
             i = i + 1
 
@@ -719,7 +722,7 @@ class ApplianceImageCreator(ImageCreator):
         xml += "  <storage>\n"
 
         if self.checksum is True:
-            for name in self.__disks.keys():
+            for name in list(self.__disks.keys()):
                 diskpath = "%s/%s-%s.%s" % (self._outdir, self.name, name, self.__disk_format)
                 disk_size = os.path.getsize(diskpath)
                 meter_ct = 0
@@ -752,7 +755,7 @@ class ApplianceImageCreator(ImageCreator):
                     xml += """      <checksum type='sha256'>%s</checksum>\n""" % sha256checksum
                 xml += "    </disk>\n"
         else:
-            for name in self.__disks.keys():
+            for name in list(self.__disks.keys()):
                 xml += "    <disk file='%s-%s.%s' use='system' format='%s'/>\n" % (self.name, name, self.__disk_format, self.__disk_format)
 
         xml += "  </storage>\n"

@@ -18,6 +18,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import os
 import os.path
 import glob
@@ -34,7 +37,7 @@ class PartitionedMount(Mount):
     def __init__(self, disks, mountdir, partition_layout):
         Mount.__init__(self, mountdir)
         self.disks = {}
-        for name in disks.keys():
+        for name in list(disks.keys()):
             self.disks[name] = { 'disk': disks[name],  # Disk object
                                  'mapped': False, # True if kpartx mapping exists
                                  'numpart': 0, # Number of allocate partitions
@@ -61,7 +64,7 @@ class PartitionedMount(Mount):
 
     def __format_disks(self):
         logging.debug("Formatting disks")
-        for dev in self.disks.keys():
+        for dev in list(self.disks.keys()):
             d = self.disks[dev]
             logging.debug("Initializing partition table for %s with %s layout" % (d['disk'].device, self.partition_layout))
             rc = subprocess.call(["/sbin/parted", "-s", d['disk'].device, "mklabel", "%s" % self.partition_layout])
@@ -72,7 +75,7 @@ class PartitionedMount(Mount):
         for n in range(len(self.partitions)):
             p = self.partitions[n]
 
-            if not self.disks.has_key(p['disk']):
+            if p['disk'] not in self.disks:
                 raise MountError("No disk %s for partition %s" % (p['disk'], p['mountpoint']))
 
             d = self.disks[p['disk']]
@@ -120,7 +123,7 @@ class PartitionedMount(Mount):
             #    raise MountError("Error creating partition on %s" % d['disk'].device)
 
     def __map_partitions(self):
-        for dev in self.disks.keys():
+        for dev in list(self.disks.keys()):
             d = self.disks[dev]
             if d['mapped']:
                 continue
@@ -185,7 +188,7 @@ class PartitionedMount(Mount):
 
 
     def __unmap_partitions(self):
-        for dev in self.disks.keys():
+        for dev in list(self.disks.keys()):
             d = self.disks[dev]
             if not d['mapped']:
                 continue
@@ -213,12 +216,12 @@ class PartitionedMount(Mount):
         self.mountOrder.sort()
         self.unmountOrder.sort()
         self.unmountOrder.reverse()
-        print str(self.mountOrder)
+        print(str(self.mountOrder))
 
     def cleanup(self):
         Mount.cleanup(self)
         self.__unmap_partitions()
-        for dev in self.disks.keys():
+        for dev in list(self.disks.keys()):
             d = self.disks[dev]
             try:
                 d['disk'].cleanup()
@@ -243,7 +246,7 @@ class PartitionedMount(Mount):
                 p['mount'] = None
 
     def mount(self):
-        for dev in self.disks.keys():
+        for dev in list(self.disks.keys()):
             d = self.disks[dev]
             d['disk'].create()
 

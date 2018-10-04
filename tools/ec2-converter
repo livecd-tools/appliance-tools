@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from __future__ import print_function
 import os
 import sys
 import optparse
@@ -65,7 +66,8 @@ def parse_options(args):
 def main():
     try:
         options = parse_options(sys.argv[1:])
-    except Usage, (msg, no_error):
+    except Usage as opterr:
+        (msg, no_error) = opterr.args
         if no_error:
             out = sys.stdout
             ret = 0
@@ -73,7 +75,7 @@ def main():
             out = sys.stderr
             ret = 2
         if msg:
-            print >> out, msg
+            print(msg, file=out)
         return ret
     
     if os.geteuid () != 0:
@@ -101,12 +103,12 @@ def main():
                     options.tmpdir, rpmcheck, sshconfig, imagename)
     
     if success:            
-        print >> sys.stdout, "\n\nEC2 Image created as %s" % imagename
-        print >> sys.stdout, "\n\nYou now need to bundle and upload the image to EC2 using the EC2 tools"
-        print >> sys.stdout, "Available at:  http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm\n"
+        print("\n\nEC2 Image created as %s" % imagename, file=sys.stdout)
+        print("\n\nYou now need to bundle and upload the image to EC2 using the EC2 tools", file=sys.stdout)
+        print("Available at:  http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm\n", file=sys.stdout)
         return 0
     else:
-        print >> sys.stdout, "\nConversion failed"
+        print("\nConversion failed", file=sys.stdout)
         return 1
 
 if __name__ == "__main__":

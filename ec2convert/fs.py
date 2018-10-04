@@ -1,3 +1,4 @@
+from __future__ import division
 # fs.py: Convert a virtual appliance image in an EC2 AMI
 #
 # Copyright 2008, Red Hat  Inc.
@@ -15,6 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import os
 import subprocess
 import logging
@@ -22,7 +26,7 @@ import sys
 import shutil
 import time
  
-class LoopBackDiskImage(): 
+class LoopBackDiskImage(object): 
 
     def setup_fs(self,imagefile,tmpdir):
             loop_devices = [] 
@@ -52,12 +56,12 @@ class LoopBackDiskImage():
                     loop_partition_dict[dev] = label  
                     logging.debug( dev + " : " + label)
 
-            dev = loop_partition_dict.values()
+            dev = list(loop_partition_dict.values())
             dev.sort()
             os.mkdir(tmproot) 
 
             for value in dev:
-                for key in loop_partition_dict.keys():
+                for key in list(loop_partition_dict.keys()):
                     if (value == loop_partition_dict[key]):
                         ld = os.popen("/sbin/losetup -f")
                         loop_partition_device = ld.read().strip()
@@ -67,7 +71,7 @@ class LoopBackDiskImage():
                         os.system("mount -o loop /dev/mapper/%s %s%s" % (key,tmproot,value))
             
             tmp_disk_space = os.popen("du -s %s|awk {'print $1'}" % tmproot)
-            tmp_disk_space= int(tmp_disk_space.read()) / 1024
+            tmp_disk_space= old_div(int(tmp_disk_space.read()), 1024)
             logging.info("Disk Space Required: %sM" % str(tmp_disk_space))
 
             new_disk_space = int(tmp_disk_space + ((tmp_disk_space * 0.30) + 150))
@@ -103,7 +107,7 @@ class LoopBackDiskImage():
         os.system("rm -rf %s/*" % tmpdir)
         return
 
-class DirectoryImage(): 
+class DirectoryImage(object): 
 
     def setup_fs(self,imagefile,tmpdir):
             tmproot = tmpdir + "-tmproot"
@@ -111,7 +115,7 @@ class DirectoryImage():
             
             logging.info("TMPDIR: " + tmpdir)
             tmp_disk_space = os.popen("du -s %s|awk {'print $1'}" % imagefile)
-            tmp_disk_space= int(tmp_disk_space.read()) / 1024
+            tmp_disk_space= old_div(int(tmp_disk_space.read()), 1024)
             logging.info("Disk Space Required: %sM" % str(tmp_disk_space))
 
             new_disk_space = int(tmp_disk_space + ((tmp_disk_space * 0.30) + 150))
@@ -143,7 +147,7 @@ class DirectoryImage():
         return
 
         
-class LoopbackFSImage():
+class LoopbackFSImage(object):
     
     def setup_fs(self,imagefile,tmpdir):
         logging.debug("Mounting %s to %s" % (imagefile,tmpdir))

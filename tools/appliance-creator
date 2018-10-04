@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from __future__ import print_function
 import os
 import sys
 import shutil
@@ -106,7 +107,8 @@ def parse_options(args):
 def main():
     try:
         options = parse_options(sys.argv[1:])
-    except Usage, (msg, no_error):
+    except Usage as xxx_todo_changeme:
+        (msg, no_error) = xxx_todo_changeme.args
         if no_error:
             out = sys.stdout
             ret = 0
@@ -114,16 +116,16 @@ def main():
             out = sys.stderr
             ret = 2
         if msg:
-            print >> out, msg
+            print(msg, file=out)
         return ret
     
     if os.geteuid () != 0:
-        print >> sys.stderr, "You must run appliance-creator as root"
+        print("You must run appliance-creator as root", file=sys.stderr)
         return 1
 
     try:
         ks = imgcreate.read_kickstart(options.kscfg)
-    except imgcreate.CreatorError, e:
+    except imgcreate.CreatorError as e:
         logging.error("Unable to load kickstart file '%s' : %s" % (options.kscfg, e))
         return 1
 
@@ -152,7 +154,7 @@ def main():
         creator.configure()
         creator.unmount()
         creator.package(destdir,options.package,options.include)    
-    except imgcreate.CreatorError, e:
+    except imgcreate.CreatorError as e:
         logging.error("Unable to create appliance : %s" % e)
         creator.cleanup()
         return 1

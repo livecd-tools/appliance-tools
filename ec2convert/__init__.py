@@ -15,5 +15,6 @@
 # MA 02110-1301 USA.
 
 
-from fs import *
-from ec2config import *
+from __future__ import absolute_import
+from .fs import *
+from .ec2config import *
