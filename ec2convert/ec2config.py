@@ -2,6 +2,8 @@
 #
 # Copyright 2008, Red Hat  Inc.
 # Joseph Boggs <jboggs@redhat.com>
+# Copyright 2018, Neal Gompa <ngompa13@gmail.com>
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; version 2 of the License.
@@ -15,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from builtins import object
 import os
 import sys
 import logging
@@ -23,7 +26,7 @@ import shutil
 import ec2convert.rpmcheck as rpmcheck
 import ec2convert.fs as fs
     
-class EC2Config():
+class EC2Config(object):
     
     def makedev(self,tmpdir):
         os.popen("/sbin/MAKEDEV -d %s/dev -x console" % tmpdir)
@@ -81,7 +84,8 @@ class EC2Config():
         try: 
             sshdconfig_path = tmpdir + "/etc/ssh/sshd_config"
             sshdconfig = open(sshdconfig_path,"w")
-        except IOError, (errno, strerror):
+        except IOError as e:
+            (errno, strerror) = e.args
             logging.error( "%s, %s" % (strerror,sshdconfig_path))
             logging.error( "The openssh_server package must be installed to convert and function properly on EC2" )
             return False
@@ -99,7 +103,8 @@ class EC2Config():
             eth0_path = tmpdir + "/etc/sysconfig/network-scripts/ifcfg-eth0"
             os.system("touch %s" % eth0_path)
             eth0 = open(eth0_path, "w")
-        except IOError, (errno, strerror):
+        except IOError as e:
+            (errno, strerror) = e.args
             logging.info( "%s, %s" % (strerror,eth0_path) )
             return False 
         else:

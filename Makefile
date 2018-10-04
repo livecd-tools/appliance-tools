@@ -4,13 +4,16 @@ INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL_PROGRAM}
+PYTHON = python
+PYTHON_PROGRAM = $(shell which $(PYTHON))
+SED_PROGRAM = /usr/bin/sed
 
-INSTALL_PYTHON = ${INSTALL} -m 644
+INSTALL_PYTHON = $(INSTALL) -m 644
 define COMPILE_PYTHON
-	python -c "import compileall as c; c.compile_dir('$(1)', force=1)"
-	python -O -c "import compileall as c; c.compile_dir('$(1)', force=1)"
+	$(PYTHON_PROGRAM) -c "import compileall as c; c.compile_dir('$(1)', force=1)"
+	$(PYTHON_PROGRAM) -O -c "import compileall as c; c.compile_dir('$(1)', force=1)"
 endef
-PYTHONDIR := $(shell python -c "import distutils.sysconfig as d; print d.get_python_lib()")
+PYTHONDIR := $(shell $(PYTHON_PROGRAM) -c "from __future__ import print_function; from distutils.sysconfig import get_python_lib; print(get_python_lib())")
 
 all:
 
@@ -31,6 +34,8 @@ install: man
 	$(call COMPILE_PYTHON,$(DESTDIR)/$(PYTHONDIR)/ec2convert)
 	mkdir -p $(DESTDIR)/usr/share/man/man8
 	$(INSTALL_DATA) -D docs/*.8 $(DESTDIR)/usr/share/man/man8
+	$(SED_PROGRAM) -i "s:#!/usr/bin/python:#!$(PYTHON_PROGRAM):g" $(DESTDIR)/usr/bin/appliance-creator
+	$(SED_PROGRAM) -i "s:#!/usr/bin/python:#!$(PYTHON_PROGRAM):g" $(DESTDIR)/usr/bin/ec2-converter
 
 uninstall:
 	rm -f $(DESTDIR)/usr/bin/appliance-creator
