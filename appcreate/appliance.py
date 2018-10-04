@@ -3,6 +3,7 @@
 #
 # Copyright 2007-2008, Red Hat  Inc.
 # Copyright 2008, Daniel P. Berrange
+# Copyright 2018, Neal Gompa
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +32,7 @@ from imgcreate.errors import *
 from imgcreate.fs import *
 from imgcreate.creator import *
 from appcreate.partitionedfs import *
-import urlgrabber.progress as progress
+import progress.bar as progress
 
 class ApplianceImageCreator(ImageCreator):
     """Installs a system into a file containing a partitioned disk image.
@@ -723,8 +724,7 @@ class ApplianceImageCreator(ImageCreator):
                 diskpath = "%s/%s-%s.%s" % (self._outdir, self.name, name, self.__disk_format)
                 disk_size = os.path.getsize(diskpath)
                 meter_ct = 0
-                meter = progress.TextMeter()
-                meter.start(size=disk_size, text="Generating disk signature for %s-%s.%s" % (self.name, name, self.__disk_format))
+                meter = progress.Bar("Generating disk signature for %s-%s.%s" % (self.name, name, self.__disk_format), max=disk_size)
                 xml += "    <disk file='%s-%s.%s' use='system' format='%s'>\n" % (self.name, name, self.__disk_format, self.__disk_format)
 
                 try:
@@ -743,8 +743,7 @@ class ApplianceImageCreator(ImageCreator):
                     m1.update(chunk)
                     if m2:
                         m2.update(chunk)
-                    meter.update(meter_ct)
-                    meter_ct = meter_ct + 65536
+                    meter.next(65536)
 
                 sha1checksum = m1.hexdigest()
                 xml +=  """      <checksum type='sha1'>%s</checksum>\n""" % sha1checksum
