@@ -169,22 +169,30 @@ class ApplianceImageCreator(ImageCreator):
         packages = kickstart.get_packages(self.ks)
         # make this the default
         partition_layout = 'msdos'
-        # check for extlinux in kickstart then grub2 and falling back to grub
-        if hasattr(self.ks.handler.bootloader, "extlinux"):
-            if 'syslinux-extlinux' in packages:
-                self.bootloader = 'extlinux'
-            elif 'extlinux-bootloader' in packages:
-                self.bootloader = 'extlinux-bootloader'
+        # set bootloader only if it is enabled and use user specified partition_layout
+        if ((not hasattr(self.ks.handler.bootloader, "disabled")) or
+           (hasattr(self.ks.handler.bootloader, "disabled") and self.ks.handler.bootloader.disabled is False)):
+            # check for extlinux in kickstart then grub2 and falling back to grub
+            if hasattr(self.ks.handler.bootloader, "extlinux"):
+                if 'syslinux-extlinux' in packages:
+                    self.bootloader = 'extlinux'
+                elif 'extlinux-bootloader' in packages:
+                    self.bootloader = 'extlinux-bootloader'
+                else:
+                    logging.warning("WARNING! syslinux-extlinux package not found.")
             else:
-                logging.warning("WARNING! syslinux-extlinux package not found.")
+                if 'grub2' in packages:
+                    self.bootloader = 'grub2'
+                    partition_layout = 'gpt'
+                elif 'grub' in packages:
+                    self.bootloader = 'grub'
+                else:
+                    logging.warning("WARNING! grub package not found.")
         else:
-            if 'grub2' in packages:
-                self.bootloader = 'grub2'
-                partition_layout = 'gpt'
-            elif 'grub' in packages:
-                self.bootloader = 'grub'
-            else:
-                logging.warning("WARNING! grub package not found.")
+            # user explicitly disabled bootloader (i.e. not part of disk image)
+            if hasattr(self.ks.handler.clearpart, "disklabel"):
+                logging.debug("Using user set default disk label: {}".format(self.ks.handler.clearpart.disklabel))
+                partition_layout = self.ks.handler.clearpart.disklabel
 
         self.__instloop = PartitionedMount(self.__disks,
                                            self._instroot,
