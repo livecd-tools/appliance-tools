@@ -1,25 +1,25 @@
-                         The Fedora Appliance tools
+                         The Fedora Appliance Tools
                       Dennis Gilmore <dennis@ausil.us>
 
                     Last updated: February 04 2017 (v008.0)
 
 
 Tools for generating appliance images on Fedora based systems including
-derived distributions such as RHEL, CentOS and others.
+derived distributions such as RHEL, CentOS, and others.
 
-This project and it's source files is licensed under the GPLv2
+This project and its source files is licensed under the GPLv2
 license. See the file COPYING for details.
 
 
 1. APPLIANCE CREATOR DESIGN GOALS
 
-This is a first cut the Appliance Creation Tool (ACT) a tool to create
-Appliance Images from a kickstart file. This tool uses the liveCD
-creator API as well as patches to the LIVECD API originally written by 
-Daniel P. Berrange <berrange@redhat.com> to create a multi partitioned 
-disk image. This Disk image can then be booted in a virtual container
-such as XEN, KVM, and VMWARE or installed into sdcards or usb sticks for
-use on arm systems such as the panda board, beagleboard, trimslice, etc.
+This is a first cut of the Appliance Creation Tool (ACT), a tool to create
+Appliance Images from a kickstart file. This tool uses the Live CD Creator
+API as well as patches to the Image Creation API originally written by
+Daniel P. Berrange <berrange@redhat.com> to create a multi partitioned
+disk image. This Disk image can then be booted in a virtual machine such as
+Xen, KVM, and VMWare. Alternatively, it can be installed onto SD cards
+or usb sticks for use on arm systems such as the PandaBoard, BeagleBoard, etc.
 
 
 2. CREATING AN APPLIANCE IMAGE
