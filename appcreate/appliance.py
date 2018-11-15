@@ -520,9 +520,12 @@ class ApplianceImageCreator(ImageCreator):
     def _create_bootconfig(self):
         logging.debug("Writing kickstart file.")
         self._write_kickstart()
-        # For EC2 lets always make a grub Legacy config file
-        logging.debug("Writing GRUB Legacy config.")
-        self._create_grub_config()
+        # For EC2 lets make a grub Legacy config file
+        # (only if bootloader is enabled)
+        if ((hasattr(self.ks.handler.bootloader, "disabled") and self.ks.handler.bootloader.disabled is False) and
+           (hasattr(self.ks.handler.bootloader, "location") and self.ks.handler.bootloader.location != "none")):
+            logging.debug("Writing GRUB Legacy config.")
+            self._create_grub_config()
 
         if self.bootloader == 'grub2':
             # We have GRUB2 package installed
