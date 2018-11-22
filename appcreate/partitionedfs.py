@@ -110,7 +110,7 @@ class PartitionedMount(Mount):
             logging.debug("Add %s part at %d of size %d" % (p['type'], p['start'], p['size']))
             if p['fstype'].startswith('ext'):
                 fstype = 'ext2'
-            if p['fstype'].startswith('swap'):
+            if p['fstype'].startswith('swap') or p['mountpoint'].startswith('swap'):
                 fstype = 'linux-swap'
             if p['fstype'] == 'vfat':
                 fstype = 'fat32'
