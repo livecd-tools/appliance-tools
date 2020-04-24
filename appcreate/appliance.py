@@ -180,7 +180,7 @@ class ApplianceImageCreator(ImageCreator):
                     self.bootloader = 'extlinux-bootloader'
                 else:
                     logging.warning("WARNING! syslinux-extlinux package not found.")
-            else:
+            if self.bootloader is None:
                 if 'grub2' in packages:
                     self.bootloader = 'grub2'
                     partition_layout = 'gpt'
