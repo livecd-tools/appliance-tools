@@ -173,7 +173,7 @@ class ApplianceImageCreator(ImageCreator):
         if ((not hasattr(self.ks.handler.bootloader, "disabled")) or
            (hasattr(self.ks.handler.bootloader, "disabled") and self.ks.handler.bootloader.disabled is False)):
             # check for extlinux in kickstart then grub2 and falling back to grub
-            if hasattr(self.ks.handler.bootloader, "extlinux"):
+            if hasattr(self.ks.handler.bootloader, "extlinux") and self.ks.handler.bootloader.extlinux is True:
                 if 'syslinux-extlinux' in packages:
                     self.bootloader = 'extlinux'
                 elif 'extlinux-bootloader' in packages:
