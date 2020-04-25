@@ -235,7 +235,7 @@ class ApplianceImageCreator(ImageCreator):
         parts = kickstart.get_partitions(self.ks)
         for p in parts:
             dev = p.disk
-            if not dev in devs:
+            if dev != "" and not dev in devs:
                 devs.append(dev)
 
         if devs == []:
