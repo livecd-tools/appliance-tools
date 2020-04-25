@@ -290,7 +290,10 @@ class PartitionedMount(Mount):
             if p['originalfstype'] == 'efi' and self.partition_layout == 'msdos':
                 logging.debug("Setting esp flag on in %s" % mp)
                 # mark the partition as efi, may fail on older versions of parted, like the ones in CentOS 7
-                subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", str(p['num']), "esp", "on"])
+                rc = subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", str(p['num']), "esp", "on"])
+                if rc != 0:
+                    logging.debug("parted failed setting esp flag, trying sfdisk")
+                    subprocess.call(["/sbin/sfdisk", "--change-id", self.disks[p['disk']]['disk'].device, str(p['num']), "ef"])
 
             if mp == 'biosboot':
                 subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", "1", "bios_grub", "on"])
