@@ -255,6 +255,11 @@ class PartitionedMount(Mount):
         self.__map_partitions()
         self.__calculate_mountorder()
 
+        boot_flag_mp = "/boot"
+        if "/boot/efi" in self.mountOrder:
+            boot_flag_mp = "/boot/efi"
+
+
         for mp in self.mountOrder:
             p = None
             for p1 in self.partitions:
@@ -270,7 +275,8 @@ class PartitionedMount(Mount):
                 p['UUID'] = self.__getuuid(p['device'])
                 continue
 
-            if mp == '/boot':
+            if mp == boot_flag_mp:
+                logging.debug("Setting boot flag on in %s" % mp)
                 # mark the partition bootable
                 subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", str(p['num']), "boot", "on"])
 
