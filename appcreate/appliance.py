@@ -454,11 +454,22 @@ class ApplianceImageCreator(ImageCreator):
             subprocess.call(["umount", self._instroot + "/dev"])
             raise MountError("Unable to install grub2 bootloader")
 
+        mkconfig_dest = "/boot/grub2/grub.cfg"
+        try:
+            logging.debug(self._instroot + "/boot/grub2/grubenv")
+            if os.path.islink(self._instroot + "/boot/grub2/grubenv"):
+                dest=os.readlink(self._instroot + "/boot/grub2/grubenv")
+                dest=dest.replace("grubenv","grub.cfg")
+                os.symlink(dest,self._instroot+mkconfig_dest)
+                logging.debug("Symlink created from %s to %s" % (dest,mkconfig_dest))
+        except:
+            logging.debug("Error creating symlink for %s" % mkconfig_dest)
+
         logging.debug("Grub2 installed.")
-        logging.debug("Generating grub2 configuration file...")
+        logging.debug("Generating grub2 configuration file in (%s)..." % mkconfig_dest)
 
         # Generating grub2 config file
-        subprocess.call(["chroot", self._instroot, "grub2-mkconfig", "-o", "/boot/grub2/grub.cfg"])
+        subprocess.call(["chroot", self._instroot, "grub2-mkconfig", "-o", mkconfig_dest])
 
         # umount /dev filesystem
         subprocess.call(["umount", self._instroot + "/dev"])
