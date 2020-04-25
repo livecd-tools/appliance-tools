@@ -120,7 +120,7 @@ class PartitionedMount(Mount):
             # XXX disabled return code check because parted always fails to
             # reload part table with loop devices. Annoying because we can't
             # distinguish this failure from real partition failures :-(
-            #if rc != 0 and 1 == 0: 
+            #if rc != 0 and 1 == 0:
             #    raise MountError("Error creating partition on %s" % d['disk'].device)
 
     def __map_partitions(self):
