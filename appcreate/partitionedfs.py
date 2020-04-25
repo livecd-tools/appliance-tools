@@ -108,12 +108,19 @@ class PartitionedMount(Mount):
                                       "%dM" % p['start'], "%dM" % (p['start'] + d['extended'])])
 
             logging.debug("Add %s part at %d of size %d" % (p['type'], p['start'], p['size']))
+            p['originalfstype'] = p['fstype']
             if p['fstype'].startswith('ext'):
                 fstype = 'ext2'
             if p['fstype'].startswith('swap') or p['mountpoint'].startswith('swap'):
                 fstype = 'linux-swap'
             if p['fstype'] == 'vfat':
                 fstype = 'fat32'
+            if p['fstype'] == 'efi':
+                fstype = 'fat32'
+                p['fstype'] = 'vfat'
+
+            logging.debug("Part fstype: %s, effective fstype %s" % (p['fstype'], fstype))
+
             rc = subprocess.call(["/sbin/parted", "-a", "opt", "-s", d['disk'].device, "mkpart",
                                   p['type'], fstype, "%dM" % p['start'], "%dM" % (p['start']+p['size'])])
 
@@ -279,6 +286,11 @@ class PartitionedMount(Mount):
                 logging.debug("Setting boot flag on in %s" % mp)
                 # mark the partition bootable
                 subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", str(p['num']), "boot", "on"])
+
+            if p['originalfstype'] == 'efi' and self.partition_layout == 'msdos':
+                logging.debug("Setting esp flag on in %s" % mp)
+                # mark the partition as efi, may fail on older versions of parted, like the ones in CentOS 7
+                subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", str(p['num']), "esp", "on"])
 
             if mp == 'biosboot':
                 subprocess.call(["/sbin/parted", "-s", self.disks[p['disk']]['disk'].device, "set", "1", "bios_grub", "on"])
