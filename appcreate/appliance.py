@@ -73,6 +73,7 @@ class ApplianceImageCreator(ImageCreator):
 
         # This determines which partition layout we'll be using
         self.bootloader = None
+        self.grub2inst_params = []
 
     def _get_fstab(self):
         s = ""
@@ -183,7 +184,16 @@ class ApplianceImageCreator(ImageCreator):
                 else:
                     logging.warning("WARNING! syslinux-extlinux package not found.")
             if self.bootloader is None:
-                if 'grub2' in packages:
+                if 'grub2-efi-arm' in packages:
+                    self.bootloader = 'grub2'
+                    self.grub2inst_params = ["--target=arm-efi", "--removable"]
+                elif 'grub2-efi-aa64' in packages:
+                    self.bootloader = 'grub2'
+                elif 'grub2-efi-ia32' in packages:
+                    self.bootloader = 'grub2'
+                elif 'grub2-efi-x64' in packages:
+                    self.bootloader = 'grub2'
+                elif 'grub2' in packages or 'grub2-pc' in packages:
                     self.bootloader = 'grub2'
                 elif 'grub' in packages:
                     self.bootloader = 'grub'
@@ -449,7 +459,7 @@ class ApplianceImageCreator(ImageCreator):
         # mount full /dev filesystem
         subprocess.call(["mount", "--bind", "/dev", self._instroot + "/dev"])
 
-        rc = subprocess.call(["chroot", self._instroot, "grub2-install", "--no-floppy", "--grub-mkdevicemap=/boot/grub2/device.map", loopdev])
+        rc = subprocess.call(["chroot", self._instroot, "grub2-install", "--no-floppy", "--grub-mkdevicemap=/boot/grub2/device.map"] + self.grub2inst_params + [loopdev])
 
         if rc != 0:
             subprocess.call(["umount", self._instroot + "/dev"])
