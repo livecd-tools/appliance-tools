@@ -35,7 +35,7 @@ from imgcreate.fs import *
 
 
 class PartitionedMount(Mount):
-    def __init__(self, disks, mountdir, partition_layout):
+    def __init__(self, disks, mountdir, partition_layout, bootloader):
         Mount.__init__(self, mountdir)
         self.disks = {}
         for name in list(disks.keys()):
@@ -51,6 +51,7 @@ class PartitionedMount(Mount):
         self.mountOrder = []
         self.unmountOrder = []
         self.partition_layout = partition_layout
+        self.bootloader = bootloader
         self.has_extended = False # Has extended partition layout
 
     def add_partition(self, size, disk, mountpoint, fstype = None):
@@ -263,7 +264,7 @@ class PartitionedMount(Mount):
         self.__calculate_mountorder()
 
         boot_flag_mp = "/boot"
-        if "/boot/efi" in self.mountOrder:
+        if "/boot/efi" in self.mountOrder and self.bootloader == "grub2":
             boot_flag_mp = "/boot/efi"
 
 

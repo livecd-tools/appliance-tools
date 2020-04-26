@@ -206,7 +206,8 @@ class ApplianceImageCreator(ImageCreator):
 
         self.__instloop = PartitionedMount(self.__disks,
                                            self._instroot,
-                                           partition_layout)
+                                           partition_layout,
+                                           self.bootloader)
 
         for p in parts:
             if p.disk:
