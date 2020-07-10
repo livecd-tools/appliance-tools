@@ -110,6 +110,8 @@ class PartitionedMount(Mount):
 
             logging.debug("Add %s part at %d of size %d" % (p['type'], p['start'], p['size']))
             p['originalfstype'] = p['fstype']
+            if p['fstype'] == 'btrfs':
+                fstype = 'btrfs'
             if p['fstype'].startswith('ext'):
                 fstype = 'ext2'
             if p['fstype'].startswith('swap') or p['mountpoint'].startswith('swap'):
@@ -308,6 +310,7 @@ class PartitionedMount(Mount):
             rmmountdir = False
             if p['mountpoint'] == "/":
                 rmmountdir = True
+            # despite the name, this supports btrfs too
             pdisk = ExtDiskMount(RawDisk(p['size'] * 1024 * 1024, p['device']),
                                  self.mountdir + p['mountpoint'],
                                  p['fstype'],
