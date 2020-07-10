@@ -47,6 +47,7 @@ class PartitionedMount(Mount):
                                  'offset': 0 } # Offset of next partition
 
         self.partitions = []
+        self.subvolumes = []
         self.mapped = False
         self.mountOrder = []
         self.unmountOrder = []
@@ -63,6 +64,9 @@ class PartitionedMount(Mount):
                                 'mount': None, # Mount object
                                 'UUID': None, # UUID for partition
                                 'num': None}) # Partition number
+
+    def add_subvolume(self, parent, mountpoint, name):
+        self.subvolumes.append({'parent': parent, 'mountpoint': mountpoint, 'name': name})
 
     def __format_disks(self):
         logging.debug("Formatting disks")
@@ -240,6 +244,20 @@ class PartitionedMount(Mount):
                 pass
 
     def unmount(self):
+        if self.subvolumes:
+            ordered = []
+            others = []
+            for s in self.subvolumes:
+                if s['mountpoint'] == '/':
+                    others.append(s)
+                else:
+                    ordered.append(s)
+                    
+            ordered += others
+             
+            for s in ordered:
+                subprocess.call(['umount', s['mountpoint']])
+    
         for mp in self.unmountOrder:
             if mp == 'swap':
                 continue
@@ -255,6 +273,25 @@ class PartitionedMount(Mount):
                 except:
                     pass
                 p['mount'] = None
+
+    def setup_subvolumes(self):
+        others = []
+        ordered = []
+        for s in self.subvolumes:
+            if s['mountpoint'] == '/':
+                ordered.append(s)
+            else:
+                others.append(s)
+  
+        ordered += others
+        for s in ordered:
+            base = "%s%s" % (self.mountdir, s['parent'])
+            path = "%s/%s" % (base, s['name'])
+            mountpath = "%s%s" % (self.mountdir, s['mountpoint'])
+            subprocess.call(['btrfs', 'subvol', 'create', path])
+            subprocess.call(['mkdir', '-p', mountpath])
+            device = subprocess.Popen(["findmnt", "-n", "-o", "SOURCE", base], stdout=subprocess.PIPE).communicate()[0].decode("utf-8").strip()
+            subprocess.call(['mount', '-t', 'btrfs', '-o', 'subvol=%s' % s['name'], device, mountpath])
 
     def mount(self):
         for dev in list(self.disks.keys()):

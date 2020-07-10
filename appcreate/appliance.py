@@ -122,6 +122,7 @@ class ApplianceImageCreator(ImageCreator):
 
         #list of partitions from kickstart file
         parts = kickstart.get_partitions(self.ks)
+        
         # need to eliminate duplicate partitions
         # this is a bit of a hack but we assume the last partition for a given mount point is the one we want
         mountpoints = []
@@ -225,10 +226,20 @@ class ApplianceImageCreator(ImageCreator):
             else:
                 self.__instloop.add_partition(int(p.size), "sda", p.mountpoint, p.fstype)
 
+        # FIXME: this only works if there's just one btrfs partition
+        for p in parts:
+            if p.fstype == 'btrfs':
+                for s in self.ks.handler.btrfs.btrfsList:
+                    if s.subvol:
+                        self.__instloop.add_subvolume(p.mountpoint, s.mountpoint, s.name)
+
         try:
             self.__instloop.mount()
         except MountError as e:
             raise CreatorError("Failed mount disks : %s" % e)
+
+        if self.ks.handler.btrfs.btrfsList:
+            self.__instloop.setup_subvolumes()
 
         self._create_mkinitrd_config()
 
