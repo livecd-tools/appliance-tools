@@ -250,6 +250,9 @@ class ApplianceImageCreator(ImageCreator):
         lang = self.ks.handler.lang.lang
         if lang != '':
             options = '%s LANG=%s' % (options, lang)
+        for s in self.ks.handler.btrfs.btrfsList:
+            if s.subvol and s.name == "root":
+                options = '%s rootflags=subvol=root' % options
         return options
 
     def _create_grub_devices(self, grubversion = 1):
