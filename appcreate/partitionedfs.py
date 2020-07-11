@@ -256,7 +256,7 @@ class PartitionedMount(Mount):
             ordered += others
              
             for s in ordered:
-                subprocess.call(['umount', s['mountpoint']])
+                subprocess.call(['umount', "%s%s" % (self.mountdir, s['mountpoint'])])
     
         for mp in self.unmountOrder:
             if mp == 'swap':
