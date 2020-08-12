@@ -473,7 +473,7 @@ class ApplianceImageCreator(ImageCreator):
         # mount full /dev filesystem
         subprocess.call(["mount", "--bind", "/dev", self._instroot + "/dev"])
 
-        rc = subprocess.call(["chroot", self._instroot, "grub2-install", "--no-floppy", "--grub-mkdevicemap=/boot/grub2/device.map"] + self.grub2inst_params + [loopdev])
+        rc = subprocess.call(["chroot", self._instroot, "grub2-install", "--no-floppy", "--no-nvram", "--grub-mkdevicemap=/boot/grub2/device.map"] + self.grub2inst_params + [loopdev])
 
         if rc != 0:
             subprocess.call(["umount", self._instroot + "/dev"])
