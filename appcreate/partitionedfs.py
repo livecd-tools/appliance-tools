@@ -224,14 +224,21 @@ class PartitionedMount(Mount):
 
 
     def __calculate_mountorder(self):
+        btrfs_mountOrder = []
         for p in self.partitions:
-            self.mountOrder.append(p['mountpoint'])
+            if p['fstype'] == 'btrfs':
+                btrfs_mountOrder.append(p['mountpoint'])
+            else:
+                self.mountOrder.append(p['mountpoint'])
             self.unmountOrder.append(p['mountpoint'])
 
         self.mountOrder.sort()
+        btrfs_mountOrder.sort()
+        # Btrfs mountpoints must be first in the list
+        self.mountOrder = btrfs_mountOrder + self.mountOrder
         self.unmountOrder.sort()
         self.unmountOrder.reverse()
-        print(str(self.mountOrder))
+        logging.info(str(self.mountOrder))
 
     def cleanup(self):
         Mount.cleanup(self)
@@ -288,8 +295,10 @@ class PartitionedMount(Mount):
             base = "%s%s" % (self.mountdir, s['parent'])
             path = "%s/%s" % (base, s['name'])
             mountpath = "%s%s" % (self.mountdir, s['mountpoint'])
+            logging.debug("Creating Btrfs subvolume at path %s" % path)
             subprocess.call(['btrfs', 'subvol', 'create', path])
             subprocess.call(['mkdir', '-p', mountpath])
+            logging.debug("Mounting Btrfs subvolume %s at path %s" % (s['name'], mountpath))
             device = subprocess.Popen(["findmnt", "-n", "-o", "SOURCE", base], stdout=subprocess.PIPE).communicate()[0].decode("utf-8").strip()
             subprocess.call(['mount', '-t', 'btrfs', '-o', 'subvol=%s' % s['name'], device, mountpath])
 
@@ -355,6 +364,8 @@ class PartitionedMount(Mount):
                                  p['mountpoint'],
                                  rmmountdir)
             pdisk.mount()
+            if p['fstype'] == 'btrfs':
+                self.setup_subvolumes()
             p['mount'] = pdisk
             p['UUID'] = self.__getuuid(p['device'])
 

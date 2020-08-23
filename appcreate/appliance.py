@@ -238,9 +238,6 @@ class ApplianceImageCreator(ImageCreator):
         except MountError as e:
             raise CreatorError("Failed mount disks : %s" % e)
 
-        if self.ks.handler.btrfs.btrfsList:
-            self.__instloop.setup_subvolumes()
-
         self._create_mkinitrd_config()
 
     def _kernel_cmdline_append(self):
