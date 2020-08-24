@@ -225,12 +225,14 @@ class PartitionedMount(Mount):
 
     def __calculate_mountorder(self):
         btrfs_mountOrder = []
+        btrfs_unmountOrder = []
         for p in self.partitions:
             if p['fstype'] == 'btrfs':
                 btrfs_mountOrder.append(p['mountpoint'])
+                btrfs_unmountOrder.append(p['mountpoint'])
             else:
                 self.mountOrder.append(p['mountpoint'])
-            self.unmountOrder.append(p['mountpoint'])
+                self.unmountOrder.append(p['mountpoint'])
 
         self.mountOrder.sort()
         btrfs_mountOrder.sort()
@@ -238,7 +240,12 @@ class PartitionedMount(Mount):
         self.mountOrder = btrfs_mountOrder + self.mountOrder
         self.unmountOrder.sort()
         self.unmountOrder.reverse()
-        logging.info(str(self.mountOrder))
+        btrfs_unmountOrder.sort()
+        btrfs_unmountOrder.reverse()
+        # Btrfs mountpoints must be last in the list
+        self.unmountOrder = self.unmountOrder + btrfs_unmountOrder
+        logging.debug("Mount order: %s" % str(self.mountOrder))
+        logging.debug("Unmount order: %s" % str(self.unmountOrder))
 
     def cleanup(self):
         Mount.cleanup(self)
@@ -251,20 +258,6 @@ class PartitionedMount(Mount):
                 pass
 
     def unmount(self):
-        if self.subvolumes:
-            ordered = []
-            others = []
-            for s in self.subvolumes:
-                if s['mountpoint'] == '/':
-                    others.append(s)
-                else:
-                    ordered.append(s)
-                    
-            ordered += others
-             
-            for s in ordered:
-                subprocess.call(['umount', "%s%s" % (self.mountdir, s['mountpoint'])])
-    
         for mp in self.unmountOrder:
             if mp == 'swap':
                 continue
@@ -280,6 +273,27 @@ class PartitionedMount(Mount):
                 except:
                     pass
                 p['mount'] = None
+
+        if self.subvolumes:
+            ordered = []
+            others = []
+            for s in self.subvolumes:
+                if s['mountpoint'] == '/':
+                    others.append(s)
+                else:
+                    ordered.append(s)
+
+            ordered = ordered + others
+
+            for s in ordered:
+                logging.info("Unmounting directory %s%s" % (self.mountdir, s['mountpoint']))
+                rc = subprocess.call(['umount', "%s%s" % (self.mountdir, s['mountpoint'])])
+                if rc != 0:
+                    logging.warning("Unmounting directory %s%s failed, using lazy "
+                                 "umount" % (self.mountdir, s['mountpoint']))
+                    print("Unmounting directory %s%s failed, using lazy umount" %
+                          (self.mountdir, s['mountpoint']), file=sys.stdout)
+                    subprocess.call(['umount', '-l', "%s%s" % (self.mountdir, s['mountpoint'])])
 
     def setup_subvolumes(self):
         others = []
