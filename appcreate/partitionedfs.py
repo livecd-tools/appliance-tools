@@ -398,7 +398,7 @@ class PartitionedMount(Mount):
         devdata = subprocess.Popen(["/sbin/blkid", partition], stdout=subprocess.PIPE)
         devdataout = devdata.communicate()[0].decode("utf-8").split()
         for data in devdataout:
-            if data.startswith("UUID"):
+            if data.startswith("UUID="):
                 UUID = data.replace('"', '')
                 continue
         return UUID
