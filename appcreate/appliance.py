@@ -76,23 +76,36 @@ class ApplianceImageCreator(ImageCreator):
         self.grub2inst_params = []
 
     def _get_fstab(self):
-        s = ""
+        f = ""
+        has_btrfs_subvolumes = False
         for mp in self.__instloop.mountOrder:
             p = None
             for p1 in self.__instloop.partitions:
+                if p1['fstype'] == "btrfs" and not p1['mountpoint'].startswith('/'):
+                    # This btrfs filesystem uses subvolumes
+                    has_btrfs_subvolumes = True
                 if p1['mountpoint'] == mp:
                     p = p1
                     break
-
+            if p['fstype'] == "btrfs" and not p['mountpoint'].startswith('/'):
+                # There's no mountpoint to export to fstab, so skip
+                continue
             if not p['UUID'] is None:
-                mountdev = p['UUID']
+                mountdev = "UUID=%s" % p['UUID']
             else:
                 mountdev = "LABEL=_%s" % p['mountpoint']
-            s +=  "%(mountdev)s  %(mountpoint)s %(fstype)s    defaults,noatime 0 0\n" %  {
+            f +=  "%(mountdev)s  %(mountpoint)s %(fstype)s    defaults,noatime 0 0\n" %  {
                 'mountdev': mountdev,
                 'mountpoint': p['mountpoint'],
                 'fstype': p['fstype'] }
-        return s
+        if has_btrfs_subvolumes:
+            for s in self.__instloop.subvolumes:
+                f +=  "%(mountdev)s  %(mountpoint)s %(fstype)s    subvol=%(name)s,noatime 0 0\n" %  {
+                    'mountdev': "UUID=%s" % s['UUID'],
+                    'mountpoint': s['mountpoint'],
+                    'fstype': "btrfs",
+                    'name': s['name'] }
+        return f
 
     def _create_mkinitrd_config(self):
         #write  to tell which modules to be included in initrd
@@ -282,6 +295,7 @@ class ApplianceImageCreator(ImageCreator):
         cfg.close()
 
     def _get_grub_boot_config(self):
+        btrfsboot = False
         bootdevnum = None
         rootdevnum = None
         rootdev = None
@@ -298,8 +312,17 @@ class ApplianceImageCreator(ImageCreator):
                 else:
                     rootdev = "LABEL=_/"
 
+        for s in self.__instloop.subvolumes:
+            if s['mountpoint'] == "/boot":
+                btrfsboot = True
+                bootdevnum = s['num'] - 1
+
+            if s['mountpoint'] == "/":
+                rootdevnum = s['num'] - 1
+                rootdev = s['UUID']
+
         prefix = ""
-        if bootdevnum == rootdevnum:
+        if bootdevnum == rootdevnum and not btrfsboot:
             prefix = "/boot"
 
         return (bootdevnum, rootdevnum, rootdev, prefix)
@@ -343,6 +366,7 @@ class ApplianceImageCreator(ImageCreator):
         cfg.close()
 
     def _get_extlinux_boot_config(self):
+        btrfsboot = False
         bootdevnum = None
         rootdevnum = None
         rootdev = None
@@ -358,8 +382,16 @@ class ApplianceImageCreator(ImageCreator):
                     rootdev = p['UUID']
                 else:
                     rootdev = "LABEL=_/"
+        for s in self.__instloop.subvolumes:
+            if s['mountpoint'] == "/boot":
+                btrfsboot = True
+                bootdevnum = s['num'] - 1
+
+            if s['mountpoint'] == "/":
+                rootdevnum = s['num'] - 1
+                rootdev = s['UUID']
         prefix = ""
-        if bootdevnum == rootdevnum:
+        if bootdevnum == rootdevnum and not btrfsboot:
             prefix = "/boot"
 
         return (bootdevnum, rootdevnum, rootdev, prefix)

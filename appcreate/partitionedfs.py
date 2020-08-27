@@ -66,7 +66,12 @@ class PartitionedMount(Mount):
                                 'num': None}) # Partition number
 
     def add_subvolume(self, parent, mountpoint, name):
-        self.subvolumes.append({'parent': parent, 'mountpoint': mountpoint, 'name': name})
+        self.subvolumes.append({'parent': parent, # parent location for subvolume
+                                'mountpoint': mountpoint, # Mount relative to chroot
+                                'name': name, # subvolume name
+                                'device': None, # kpartx device node for partition
+                                'UUID': None, # UUID for partition
+                                'num': None}) # Partition number
 
     def __format_disks(self):
         logging.debug("Formatting disks")
@@ -299,11 +304,14 @@ class PartitionedMount(Mount):
         others = []
         ordered = []
         for s in self.subvolumes:
+            s['device'] = subprocess.Popen(["findmnt", "-n", "-o", "SOURCE", "%s%s" % (self.mountdir, s['parent'])], stdout=subprocess.PIPE).communicate()[0].decode("utf-8").strip()
+            s['UUID'] = self.__getuuid(s['device'])
+            s['num'] = int(s['device'].rsplit('p', 1)[1])
             if s['mountpoint'] == '/':
                 ordered.append(s)
             else:
                 others.append(s)
-  
+
         ordered += others
         for s in ordered:
             base = "%s%s" % (self.mountdir, s['parent'])
@@ -313,8 +321,7 @@ class PartitionedMount(Mount):
             subprocess.call(['btrfs', 'subvol', 'create', path])
             subprocess.call(['mkdir', '-p', mountpath])
             logging.debug("Mounting Btrfs subvolume %s at path %s" % (s['name'], mountpath))
-            device = subprocess.Popen(["findmnt", "-n", "-o", "SOURCE", base], stdout=subprocess.PIPE).communicate()[0].decode("utf-8").strip()
-            subprocess.call(['mount', '-t', 'btrfs', '-o', 'subvol=%s' % s['name'], device, mountpath])
+            subprocess.call(['mount', '-t', 'btrfs', '-o', 'subvol=%s' % s['name'], s['device'], mountpath])
 
     def mount(self):
         for dev in list(self.disks.keys()):
