@@ -91,7 +91,7 @@ class ApplianceImageCreator(ImageCreator):
                 # There's no mountpoint to export to fstab, so skip
                 continue
             if not p['UUID'] is None:
-                mountdev = "UUID=%s" % p['UUID']
+                mountdev = p['UUID']
             else:
                 mountdev = "LABEL=_%s" % p['mountpoint']
             f +=  "%(mountdev)s  %(mountpoint)s %(fstype)s    defaults,noatime 0 0\n" %  {
@@ -101,7 +101,7 @@ class ApplianceImageCreator(ImageCreator):
         if has_btrfs_subvolumes:
             for s in self.__instloop.subvolumes:
                 f +=  "%(mountdev)s  %(mountpoint)s %(fstype)s    subvol=%(name)s,noatime 0 0\n" %  {
-                    'mountdev': "UUID=%s" % s['UUID'],
+                    'mountdev': s['UUID'],
                     'mountpoint': s['mountpoint'],
                     'fstype': "btrfs",
                     'name': s['name'] }
