@@ -74,6 +74,7 @@ class ApplianceImageCreator(ImageCreator):
         # This determines which partition layout we'll be using
         self.bootloader = None
         self.grub2inst_params = []
+        self.grub2inst_may_fail = False
 
     def _get_fstab(self):
         f = ""
@@ -201,12 +202,16 @@ class ApplianceImageCreator(ImageCreator):
                 if 'grub2-efi-arm' in packages:
                     self.bootloader = 'grub2'
                     self.grub2inst_params = ["--target=arm-efi", "--removable"]
+                    self.grub2inst_may_fail = True
                 elif 'grub2-efi-aa64' in packages:
                     self.bootloader = 'grub2'
+                    self.grub2inst_may_fail = True
                 elif 'grub2-efi-ia32' in packages:
                     self.bootloader = 'grub2'
+                    self.grub2inst_may_fail = True
                 elif 'grub2-efi-x64' in packages:
                     self.bootloader = 'grub2'
+                    self.grub2inst_may_fail = True
                 elif 'grub2' in packages or 'grub2-pc' in packages:
                     self.bootloader = 'grub2'
                 elif 'grub' in packages:
@@ -505,8 +510,11 @@ class ApplianceImageCreator(ImageCreator):
         rc = subprocess.call(["chroot", self._instroot, "grub2-install", "--no-floppy", "--no-nvram", "--grub-mkdevicemap=/boot/grub2/device.map"] + self.grub2inst_params + [loopdev])
 
         if rc != 0:
-            subprocess.call(["umount", self._instroot + "/dev"])
-            raise MountError("Unable to install grub2 bootloader")
+            if self.grub2inst_may_fail:
+                logging.debug("grub2-install failed, but error is expected and ignored (EFI)")
+            else:
+                subprocess.call(["umount", self._instroot + "/dev"])
+                raise MountError("Unable to install grub2 bootloader")
 
         mkconfig_dest = "/boot/grub2/grub.cfg"
         try:
