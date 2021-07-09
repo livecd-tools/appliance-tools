@@ -4,7 +4,7 @@
 lang C
 keyboard us
 timezone US/Eastern
-auth --useshadow --enablemd5
+authselect select sssd with-silent-lastlog --force
 selinux --permissive
 firewall --disabled
 bootloader --timeout=1 --append="acpi=force console=ttyS0,115200"
@@ -72,8 +72,6 @@ iputils
 -setserial
 -ed
 
-# Remove the authconfig pieces
--authconfig
 -rhpl
 -wireless-tools
 
